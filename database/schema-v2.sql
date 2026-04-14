@@ -60,3 +60,19 @@ FROM neoway_leads
 WHERE updated_at IS NOT NULL
 GROUP BY 1, 2
 ORDER BY 1 DESC;
+
+-- ============================================================
+--  Tabela de executivos — região correta por nome
+-- ============================================================
+CREATE TABLE IF NOT EXISTS executivos (
+  id           SERIAL PRIMARY KEY,
+  nome         VARCHAR(200) NOT NULL,       -- nome completo normalizado
+  region_code  VARCHAR(20) REFERENCES regions(code),
+  state_code   VARCHAR(2),
+  centro_custo VARCHAR(100),
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_exec_nome ON executivos(UPPER(TRIM(nome)));
+CREATE INDEX IF NOT EXISTS idx_exec_region ON executivos(region_code);

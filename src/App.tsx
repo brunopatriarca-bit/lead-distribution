@@ -1,6 +1,5 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2 } from 'lucide-react';
+import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog } from 'lucide-react';
 import Dashboard        from './pages/Dashboard';
 import LeadsTable       from './pages/LeadsTable';
 import RegionPage       from './pages/RegionPage';
@@ -9,6 +8,7 @@ import ImportPage       from './pages/ImportPage';
 import MapPage          from './pages/MapPage';
 import ManagerDashboard from './pages/ManagerDashboard';
 import NeowayLeadsPage  from './pages/NeowayLeadsPage';
+import ExecutivosPage   from './pages/ExecutivosPage';
 
 export default function App() {
   return (
@@ -21,33 +21,35 @@ export default function App() {
           </div>
           <nav className="flex-1 p-3 space-y-0.5">
             <SectionLabel label="Paytrack"/>
-            <NavItem to="/"       icon={<LayoutDashboard size={15}/>} label="Dashboard"/>
-            <NavItem to="/visitas" icon={<Users size={15}/>}          label="Visitas"/>
-            <NavItem to="/mapa"   icon={<Globe size={15}/>}           label="Mapa de visitas"/>
+            <NavItem to="/"        icon={<LayoutDashboard size={15}/>} label="Dashboard"/>
+            <NavItem to="/visitas" icon={<Users size={15}/>}           label="Visitas"/>
+            <NavItem to="/mapa"    icon={<Globe size={15}/>}           label="Mapa de visitas"/>
 
             <SectionLabel label="Neoway"/>
-            <NavItem to="/gestor"  icon={<BarChart2 size={15}/>}     label="Dashboard gestor"/>
-            <NavItem to="/neoway"  icon={<Building2 size={15}/>}     label="Leads Neoway"/>
-            <NavItem to="/import"  icon={<Upload size={15}/>}        label="Importar Excel"/>
+            <NavItem to="/gestor"  icon={<BarChart2 size={15}/>}      label="Dashboard gestor"/>
+            <NavItem to="/neoway"  icon={<Building2 size={15}/>}      label="Leads Neoway"/>
+            <NavItem to="/import"  icon={<Upload size={15}/>}         label="Importar Excel"/>
 
-            <SectionLabel label="Config"/>
-            <NavItem to="/regioes" icon={<Map size={15}/>}           label="Regiões"/>
-            <NavItem to="/sync"    icon={<RefreshCw size={15}/>}     label="Sincronizar"/>
+            <SectionLabel label="Configuração"/>
+            <NavItem to="/executivos" icon={<UserCog size={15}/>}     label="Executivos"/>
+            <NavItem to="/regioes"    icon={<Map size={15}/>}         label="Regiões"/>
+            <NavItem to="/sync"       icon={<RefreshCw size={15}/>}   label="Sincronizar"/>
           </nav>
           <div className="p-4 border-t border-gray-200">
-            <p className="text-xs text-gray-400">v1.2 · Neon DB</p>
+            <p className="text-xs text-gray-400">v1.3 · Neon DB</p>
           </div>
         </aside>
         <main className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/"        element={<Dashboard/>}/>
-            <Route path="/visitas" element={<LeadsTable/>}/>
-            <Route path="/mapa"    element={<MapPage/>}/>
-            <Route path="/gestor"  element={<ManagerDashboard/>}/>
-            <Route path="/neoway"  element={<NeowayLeadsPage/>}/>
-            <Route path="/import"  element={<ImportPage/>}/>
-            <Route path="/regioes" element={<RegionPage/>}/>
-            <Route path="/sync"    element={<SyncPage/>}/>
+            <Route path="/"           element={<Dashboard/>}/>
+            <Route path="/visitas"    element={<LeadsTable/>}/>
+            <Route path="/mapa"       element={<MapPage/>}/>
+            <Route path="/gestor"     element={<ManagerDashboard/>}/>
+            <Route path="/neoway"     element={<NeowayLeadsPage/>}/>
+            <Route path="/import"     element={<ImportPage/>}/>
+            <Route path="/executivos" element={<ExecutivosPage/>}/>
+            <Route path="/regioes"    element={<RegionPage/>}/>
+            <Route path="/sync"       element={<SyncPage/>}/>
           </Routes>
         </main>
       </div>
