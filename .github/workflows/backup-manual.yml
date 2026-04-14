@@ -1,0 +1,44 @@
+name: Backup Manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: 'Motivo do backup'
+        required: false
+        default: 'backup manual'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Executar pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          DATE=$(date +%Y-%m-%d_%H-%M)
+          mkdir -p backups
+          pg_dump "$DATABASE_URL" \
+            --no-owner \
+            --no-acl \
+            --format=plain \
+            --file="backups/manual_${DATE}.sql"
+          gzip "backups/manual_${DATE}.sql"
+          echo "Backup criado: backups/manual_${DATE}.sql.gz"
+          ls -lh backups/
+
+      - name: Commit e push
+        run: |
+          git config user.name "backup-bot"
+          git config user.email "backup@lead-distribution"
+          git add backups/
+          git diff --staged --quiet || git commit -m "backup manual: ${{ github.event.inputs.motivo }} - $(date +%d/%m/%Y)"
+          git push origin main

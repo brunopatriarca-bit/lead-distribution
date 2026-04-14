@@ -1,0 +1,45 @@
+name: Backup Neon DB
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Executar pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          DATE=$(date +%Y-%m-%d_%H-%M)
+          mkdir -p backups
+          pg_dump "$DATABASE_URL" \
+            --no-owner \
+            --no-acl \
+            --format=plain \
+            --file="backups/backup_${DATE}.sql"
+          gzip "backups/backup_${DATE}.sql"
+          echo "Backup criado: backups/backup_${DATE}.sql.gz"
+          ls -lh backups/
+
+      - name: Remover backups com mais de 30 dias
+        run: |
+          find backups/ -name "*.sql.gz" -mtime +30 -delete || true
+
+      - name: Commit e push
+        run: |
+          git config user.name "backup-bot"
+          git config user.email "backup@lead-distribution"
+          git add backups/
+          git diff --staged --quiet || git commit -m "backup: $(date +%d/%m/%Y)"
+          git push origin main
