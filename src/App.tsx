@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog } from 'lucide-react';
+import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog, Trophy } from 'lucide-react';
 import Dashboard        from './pages/Dashboard';
 import LeadsTable       from './pages/LeadsTable';
 import RegionPage       from './pages/RegionPage';
@@ -9,6 +9,7 @@ import MapPage          from './pages/MapPage';
 import ManagerDashboard from './pages/ManagerDashboard';
 import NeowayLeadsPage  from './pages/NeowayLeadsPage';
 import ExecutivosPage   from './pages/ExecutivosPage';
+import RankingPage      from './pages/RankingPage';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <NavItem to="/"        icon={<LayoutDashboard size={15}/>} label="Dashboard"/>
             <NavItem to="/visitas" icon={<Users size={15}/>}           label="Visitas"/>
             <NavItem to="/mapa"    icon={<Globe size={15}/>}           label="Mapa de visitas"/>
+            <NavItem to="/ranking" icon={<Trophy size={15}/>}          label="Ranking"/>
 
             <SectionLabel label="Neoway"/>
             <NavItem to="/gestor"  icon={<BarChart2 size={15}/>}      label="Dashboard gestor"/>
@@ -36,7 +38,7 @@ export default function App() {
             <NavItem to="/sync"       icon={<RefreshCw size={15}/>}   label="Sincronizar"/>
           </nav>
           <div className="p-4 border-t border-gray-200">
-            <p className="text-xs text-gray-400">v1.3 · Neon DB</p>
+            <p className="text-xs text-gray-400">v1.4 · Neon DB</p>
           </div>
         </aside>
         <main className="flex-1 overflow-auto">
@@ -44,6 +46,7 @@ export default function App() {
             <Route path="/"           element={<Dashboard/>}/>
             <Route path="/visitas"    element={<LeadsTable/>}/>
             <Route path="/mapa"       element={<MapPage/>}/>
+            <Route path="/ranking"    element={<RankingPage/>}/>
             <Route path="/gestor"     element={<ManagerDashboard/>}/>
             <Route path="/neoway"     element={<NeowayLeadsPage/>}/>
             <Route path="/import"     element={<ImportPage/>}/>
