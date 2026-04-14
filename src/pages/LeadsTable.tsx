@@ -144,14 +144,29 @@ export default function LeadsTable() {
                 </td>
                 <td className="px-5 py-3">
                   {(() => {
-                    const r = lead.raw_data as any;
-                    const loc  = r?.LOCALIZAÇÃO || r?.localizacao || r?.localizacao_fim || '';
-                    const city = r?.municipio   || r?.cidade      || '';
-                    const uf   = lead.state_code || '';
-                    const text = loc || [city, uf].filter(Boolean).join(' - ');
-                    return text
-                      ? <span className="text-xs text-gray-500 truncate block max-w-48" title={text}>{text}</span>
-                      : <span className="text-gray-300 text-xs">—</span>;
+                    const r    = lead.raw_data as any;
+                    const lat  = parseFloat(r?.latitude_fim  || '0');
+                    const lon  = parseFloat(r?.longitude_fim || '0');
+                    const custo = String(r?.centro_custo || '').trim();
+                    const hasCoords = lat !== 0 && lon !== 0 && !isNaN(lat) && !isNaN(lon);
+                    const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+                    return (
+                      <div className="space-y-0.5">
+                        {hasCoords && (
+                          <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 hover:underline">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            Ver no mapa
+                          </a>
+                        )}
+                        {custo && (
+                          <span className="text-xs text-gray-400 truncate block max-w-44" title={custo}>
+                            {custo.length > 30 ? custo.slice(0,30)+'…' : custo}
+                          </span>
+                        )}
+                        {!hasCoords && !custo && <span className="text-gray-300 text-xs">—</span>}
+                      </div>
+                    );
                   })()}
                 </td>
                 <td className="px-5 py-3 text-gray-400 text-xs">
