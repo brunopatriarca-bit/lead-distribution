@@ -1,6 +1,4 @@
 // netlify/functions/import-neoway.js
-// Recebe array de leads da Neoway (parsed no frontend) e salva no banco
-
 const { neon } = require('@neondatabase/serverless');
 
 const STATE_TO_REGION = {
@@ -29,6 +27,11 @@ function normalizeUF(val) {
   return UF_NAMES[s] || null;
 }
 
+function cleanCNPJ(v) {
+  if (!v) return null;
+  return String(v).replace(/\D/g, '').slice(0, 14) || null;
+}
+
 exports.handler = async (event) => {
   const headers = { 'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type' };
   if (event.httpMethod === 'OPTIONS') return { statusCode:204, headers, body:'' };
@@ -37,7 +40,7 @@ exports.handler = async (event) => {
   let body;
   try { body = JSON.parse(event.body); } catch { return { statusCode:400, headers, body:JSON.stringify({error:'JSON inválido'}) }; }
 
-  const { rows, ufColumn, nameColumn } = body;
+  const { rows, ufColumn, nameColumn, cnpjColumn, cityColumn, addressColumn } = body;
   if (!rows?.length) return { statusCode:400, headers, body:JSON.stringify({error:'Nenhuma linha enviada'}) };
 
   const sql = neon(process.env.DATABASE_URL);
@@ -45,19 +48,36 @@ exports.handler = async (event) => {
 
   for (const row of rows) {
     try {
-      const ufRaw   = ufColumn   ? row[ufColumn]   : (row['UF'] || row['uf'] || row['Estado'] || row['estado'] || row['state']);
-      const nameRaw = nameColumn ? row[nameColumn] : (row['Razão Social'] || row['razao_social'] || row['Nome'] || row['nome'] || row['RAZÃO SOCIAL']);
+      // Detectar campos
+      const ufRaw   = ufColumn      ? row[ufColumn]      : (row['UF']||row['uf']||row['Estado']||row['estado']);
+      const nameRaw = nameColumn    ? row[nameColumn]    : (row['Razão Social']||row['razao_social']||row['Nome']||row['RAZÃO SOCIAL']||row['nome']);
+      const cnpjRaw = cnpjColumn    ? row[cnpjColumn]    : (row['CNPJ']||row['cnpj']||row['CPF']||row['cpf']);
+      const cityRaw = cityColumn    ? row[cityColumn]    : (row['Cidade']||row['cidade']||row['MUNICIPIO']||row['Municipio']);
+      const addrRaw = addressColumn ? row[addressColumn] : (row['Endereço']||row['endereco']||row['Logradouro']||row['logradouro']);
+
       const stateCode  = normalizeUF(ufRaw);
       const regionCode = stateCode ? (STATE_TO_REGION[stateCode] || null) : null;
-      const externalId = `neoway_${row['CNPJ'] || row['cnpj'] || row['CPF'] || row['cpf'] || nameRaw || JSON.stringify(row).slice(0,40)}`;
+      const cnpj       = cleanCNPJ(cnpjRaw);
+      const name       = nameRaw ? String(nameRaw).trim().slice(0, 200) : null;
+      const city       = cityRaw ? String(cityRaw).trim().slice(0, 100) : null;
+      const address    = addrRaw ? String(addrRaw).trim().slice(0, 500) : null;
+      const externalId = cnpj ? `neoway_${cnpj}` : `neoway_${name || JSON.stringify(row).slice(0,40)}`;
 
       const result = await sql`
-        INSERT INTO leads (external_id, raw_data, state_code, region_code, synced_at)
-        VALUES (${externalId}, ${JSON.stringify({...row, _source:'neoway'})}, ${stateCode}, ${regionCode}, NOW())
+        INSERT INTO neoway_leads
+          (external_id, raw_data, name, cnpj, state_code, region_code, city, address, created_at)
+        VALUES
+          (${externalId}, ${JSON.stringify(row)}, ${name}, ${cnpj},
+           ${stateCode}, ${regionCode}, ${city}, ${address}, NOW())
         ON CONFLICT (external_id) DO UPDATE SET
-          raw_data=EXCLUDED.raw_data, state_code=EXCLUDED.state_code,
-          region_code=EXCLUDED.region_code, synced_at=NOW()
-        RETURNING (xmax=0) AS is_insert
+          raw_data    = EXCLUDED.raw_data,
+          name        = EXCLUDED.name,
+          state_code  = EXCLUDED.state_code,
+          region_code = EXCLUDED.region_code,
+          city        = EXCLUDED.city,
+          address     = EXCLUDED.address,
+          updated_at  = NOW()
+        RETURNING (xmax = 0) AS is_insert
       `;
       if (result[0]?.is_insert) inserted++; else updated++;
     } catch { skipped++; }
