@@ -159,13 +159,11 @@ export default function NeowayMapPage() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {stats?.pendentes > 0 && (
-              <button onClick={handleGeocode} disabled={geocoding}
-                className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50">
-                <RefreshCw size={12} className={geocoding?'animate-spin':''}/> 
-                {geocoding ? 'Geocodificando...' : `Geocodificar ${stats.pendentes} leads`}
-              </button>
-            )}
+            <button onClick={handleGeocode} disabled={geocoding}
+              className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50">
+              <RefreshCw size={12} className={geocoding?'animate-spin':''}/> 
+              {geocoding ? 'Geocodificando...' : `Geocodificar leads${stats?.pendentes > 0 ? ` (${stats.pendentes})` : ''}`}
+            </button>
             <div className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-2 py-1.5">
               <Crosshair size={12} className="text-green-600"/>
               <span className="text-xs text-gray-500">Raio:</span>
