@@ -108,7 +108,7 @@ export default function RankingPage() {
   const totalVisitas = ranking.reduce((s,r) => s + Number(r.visitas || 0), 0);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div style={{display:'flex',flexDirection:'column',height:'100vh',overflow:'hidden'}}>
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
