@@ -11,7 +11,8 @@ const MONTHS = [
 ];
 const currentYear  = new Date().getFullYear();
 const currentMonth = String(new Date().getMonth()+1);
-const YEARS = [currentYear, currentYear-1, currentYear-2].map(String);
+// Include years from Paytrack data (starts 2025)
+const YEARS = [currentYear, currentYear-1, currentYear-2, currentYear-3].map(String);
 declare global { interface Window { L: any } }
 
 export default function MapPage() {
@@ -21,8 +22,8 @@ export default function MapPage() {
   const [leads, setLeads]           = useState<any[]>([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState('');
-  const [month, setMonth]           = useState(currentMonth);
-  const [year, setYear]             = useState(String(currentYear));
+  const [month, setMonth]           = useState('4');  // Abril 2025 = dados reais
+  const [year, setYear]             = useState('2025');
   const [total, setTotal]           = useState(0);
   const [leafletReady, setLeafletReady] = useState(false);
 

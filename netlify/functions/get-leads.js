@@ -30,16 +30,17 @@ exports.handler = async (event) => {
 
     // Map page (with optional month/year + region)
     if (view === 'map') {
+      // data_inicio em raw_data = data real da visita (ex: 2025-04-17T00:00:00.000Z)
       if (region && month && year) {
         const dFrom = `${year}-${String(month).padStart(2,'0')}-01`;
         const dTo   = month==='12' ? `${parseInt(year)+1}-01-01` : `${year}-${String(parseInt(month)+1).padStart(2,'0')}-01`;
-        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE region_code=${region} AND synced_at>=${dFrom} AND synced_at<${dTo} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE region_code=${region} AND synced_at>=${dFrom} AND synced_at<${dTo}`;
+        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE region_code=${region} AND (raw_data->>'data_inicio')>=${dFrom} AND (raw_data->>'data_inicio')<${dTo} ORDER BY raw_data->>'data_inicio' DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE region_code=${region} AND (raw_data->>'data_inicio')>=${dFrom} AND (raw_data->>'data_inicio')<${dTo}`;
       } else if (month && year) {
         const dFrom = `${year}-${String(month).padStart(2,'0')}-01`;
         const dTo   = month==='12' ? `${parseInt(year)+1}-01-01` : `${year}-${String(parseInt(month)+1).padStart(2,'0')}-01`;
-        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE synced_at>=${dFrom} AND synced_at<${dTo} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE synced_at>=${dFrom} AND synced_at<${dTo}`;
+        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE (raw_data->>'data_inicio')>=${dFrom} AND (raw_data->>'data_inicio')<${dTo} ORDER BY raw_data->>'data_inicio' DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE (raw_data->>'data_inicio')>=${dFrom} AND (raw_data->>'data_inicio')<${dTo}`;
       } else if (region) {
         rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE region_code=${region} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
         totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE region_code=${region}`;
