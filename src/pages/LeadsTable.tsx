@@ -148,23 +148,29 @@ export default function LeadsTable() {
                     const lat  = parseFloat(r?.latitude_fim  || '0');
                     const lon  = parseFloat(r?.longitude_fim || '0');
                     const custo = String(r?.centro_custo || '').trim();
+                    const dest  = (lead as any).destination_name as string | null;
                     const hasCoords = lat !== 0 && lon !== 0 && !isNaN(lat) && !isNaN(lon);
                     const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
                     return (
                       <div className="space-y-0.5">
+                        {dest && (
+                          <span className="text-xs font-medium text-gray-800 truncate block max-w-48" title={dest}>
+                            {dest.length > 35 ? dest.slice(0,35)+'…' : dest}
+                          </span>
+                        )}
                         {hasCoords && (
                           <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 hover:underline">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            Ver no mapa
+                            {dest ? 'Ver localização' : 'Ver no mapa'}
                           </a>
                         )}
-                        {custo && (
+                        {!dest && custo && (
                           <span className="text-xs text-gray-400 truncate block max-w-44" title={custo}>
                             {custo.length > 30 ? custo.slice(0,30)+'…' : custo}
                           </span>
                         )}
-                        {!hasCoords && !custo && <span className="text-gray-300 text-xs">—</span>}
+                        {!hasCoords && !custo && !dest && <span className="text-gray-300 text-xs">—</span>}
                       </div>
                     );
                   })()}
