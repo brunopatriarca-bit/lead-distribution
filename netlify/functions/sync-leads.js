@@ -68,12 +68,14 @@ function coordsToState(lat, lon) {
 }
 
 function extractCoords(row) {
+  // Usa latitude_INICIO (base do executivo) para determinar região
+  // latitude_fim é o destino da visita — não reflete a região do executivo
   let lat = null, lon = null;
-  for (const f of ['latitude_fim','latitude_inicio','lat','latitude']) {
+  for (const f of ['latitude_inicio','lat','latitude','latitude_fim']) {
     const v = parseFloat(row[f]);
     if (row[f] != null && row[f] !== '' && !isNaN(v) && v !== 0) { lat = v; break; }
   }
-  for (const f of ['longitude_fim','longitude_inicio','lon','longitude','lng']) {
+  for (const f of ['longitude_inicio','lon','longitude','lng','longitude_fim']) {
     const v = parseFloat(row[f]);
     if (row[f] != null && row[f] !== '' && !isNaN(v) && v !== 0) { lon = v; break; }
   }

@@ -83,7 +83,7 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard icon={<Users size={18} />}       label="Total de leads"    value={stats?.totalLeads ?? 0} color="violet" />
+        <KpiCard icon={<Users size={18} />}       label="Total de visitas"    value={stats?.totalLeads ?? 0} color="violet" />
         <KpiCard icon={<TrendingUp size={18} />}  label="Novos"             value={totalNovos}            color="blue"   />
         <KpiCard icon={<Clock size={18} />}       label="Em andamento"      value={totalAndamento}        color="yellow" />
         <KpiCard icon={<CheckCircle size={18} />} label="Concluídos"        value={totalConcluido}        color="green"  />
@@ -91,7 +91,7 @@ export default function Dashboard() {
 
       {/* Região cards */}
       <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-4">Leads por região</h3>
+        <h3 className="text-sm font-medium text-gray-700 mb-4">Visitas por região</h3>
         <div className="grid grid-cols-3 gap-4">
           {stats?.stats.map(region => (
             <div key={region.code} className="bg-white rounded-xl border border-gray-200 p-5">

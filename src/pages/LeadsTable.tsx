@@ -45,14 +45,14 @@ export default function LeadsTable() {
     const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.href = url; a.download = `visitas_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
   };
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">Leads</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Visitas</h2>
         <button onClick={exportCSV} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50">
           <Download size={14} /> Exportar CSV
         </button>

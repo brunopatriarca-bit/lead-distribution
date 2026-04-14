@@ -19,7 +19,7 @@ export default function App() {
           </div>
           <nav className="flex-1 p-3 space-y-0.5">
             <NavItem to="/"        icon={<LayoutDashboard size={15} />} label="Dashboard" />
-            <NavItem to="/leads"   icon={<Users size={15} />}           label="Leads" />
+            <NavItem to="/leads"   icon={<Users size={15} />}           label="Visitas" />
             <NavItem to="/mapa"    icon={<Globe size={15} />}           label="Mapa de visitas" />
             <NavItem to="/import"  icon={<Upload size={15} />}          label="Importar Neoway" />
             <div className="pt-3 pb-1">
