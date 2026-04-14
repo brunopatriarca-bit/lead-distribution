@@ -6,6 +6,14 @@ import type { Lead, LeadStatus, RegionCode, PaginatedResponse } from '../types';
 import { REGIONS, STATUS_LABELS, STATUS_COLORS } from '../types';
 import { format } from 'date-fns';
 
+const MONTHS = [
+  {v:'',l:'Todos os meses'},{v:'1',l:'Jan'},{v:'2',l:'Fev'},{v:'3',l:'Mar'},
+  {v:'4',l:'Abr'},{v:'5',l:'Mai'},{v:'6',l:'Jun'},{v:'7',l:'Jul'},
+  {v:'8',l:'Ago'},{v:'9',l:'Set'},{v:'10',l:'Out'},{v:'11',l:'Nov'},{v:'12',l:'Dez'},
+] as const;
+const CY = new Date().getFullYear();
+const YEARS_OPT = [{v:'',l:'Todos'},{v:'2025',l:'2025'},{v:'2024',l:'2024'},{v:String(CY),l:String(CY)}] as const;
+
 export default function LeadsTable() {
   const [data, setData] = useState<PaginatedResponse<Lead> | null>(null);
   const [loading, setLoading] = useState(true);
