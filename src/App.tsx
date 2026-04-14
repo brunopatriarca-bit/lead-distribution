@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog, Trophy } from 'lucide-react';
+import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog, Trophy, MapPinned } from 'lucide-react';
 import Dashboard        from './pages/Dashboard';
 import LeadsTable       from './pages/LeadsTable';
 import RegionPage       from './pages/RegionPage';
@@ -8,6 +8,7 @@ import ImportPage       from './pages/ImportPage';
 import MapPage          from './pages/MapPage';
 import ManagerDashboard from './pages/ManagerDashboard';
 import NeowayLeadsPage  from './pages/NeowayLeadsPage';
+import NeowayMapPage    from './pages/NeowayMapPage';
 import ExecutivosPage   from './pages/ExecutivosPage';
 import RankingPage      from './pages/RankingPage';
 
@@ -20,7 +21,7 @@ export default function App() {
             <h1 className="text-base font-semibold text-gray-900">Lead Distribution</h1>
             <p className="text-xs text-gray-400 mt-0.5">Paytrack · Neoway · Omnilink</p>
           </div>
-          <nav className="flex-1 p-3 space-y-0.5">
+          <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
             <SectionLabel label="Paytrack"/>
             <NavItem to="/"        icon={<LayoutDashboard size={15}/>} label="Dashboard"/>
             <NavItem to="/visitas" icon={<Users size={15}/>}           label="Visitas"/>
@@ -28,17 +29,18 @@ export default function App() {
             <NavItem to="/ranking" icon={<Trophy size={15}/>}          label="Ranking"/>
 
             <SectionLabel label="Neoway"/>
-            <NavItem to="/gestor"  icon={<BarChart2 size={15}/>}      label="Dashboard gestor"/>
-            <NavItem to="/neoway"  icon={<Building2 size={15}/>}      label="Leads Neoway"/>
-            <NavItem to="/import"  icon={<Upload size={15}/>}         label="Importar Excel"/>
+            <NavItem to="/gestor"      icon={<BarChart2 size={15}/>}   label="Dashboard gestor"/>
+            <NavItem to="/neoway"      icon={<Building2 size={15}/>}   label="Leads Neoway"/>
+            <NavItem to="/neoway-mapa" icon={<MapPinned size={15}/>}   label="Mapa de leads"/>
+            <NavItem to="/import"      icon={<Upload size={15}/>}      label="Importar Excel"/>
 
             <SectionLabel label="Configuração"/>
             <NavItem to="/executivos" icon={<UserCog size={15}/>}     label="Executivos"/>
             <NavItem to="/regioes"    icon={<Map size={15}/>}         label="Regiões"/>
             <NavItem to="/sync"       icon={<RefreshCw size={15}/>}   label="Sincronizar"/>
           </nav>
-          <div className="p-4 border-t border-gray-200">
-            <p className="text-xs text-gray-400">v1.4 · Neon DB</p>
+          <div className="p-4 border-t border-gray-200 flex-shrink-0">
+            <p className="text-xs text-gray-400">v1.5 · Neon DB</p>
           </div>
         </aside>
         <main className="flex-1 overflow-auto">
@@ -49,6 +51,7 @@ export default function App() {
             <Route path="/ranking"    element={<RankingPage/>}/>
             <Route path="/gestor"     element={<ManagerDashboard/>}/>
             <Route path="/neoway"     element={<NeowayLeadsPage/>}/>
+            <Route path="/neoway-mapa" element={<NeowayMapPage/>}/>
             <Route path="/import"     element={<ImportPage/>}/>
             <Route path="/executivos" element={<ExecutivosPage/>}/>
             <Route path="/regioes"    element={<RegionPage/>}/>
@@ -63,7 +66,6 @@ export default function App() {
 function SectionLabel({ label }: { label: string }) {
   return <p className="text-[10px] font-medium text-gray-400 px-3 pt-3 pb-1 uppercase tracking-wider">{label}</p>;
 }
-
 function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
   return (
     <NavLink to={to} end={to==='/'} className={({ isActive }) =>

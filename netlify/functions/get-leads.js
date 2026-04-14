@@ -10,27 +10,47 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
 
   const params = event.queryStringParameters || {};
-  const { region, state, status, page = '1', limit = '50', search, view } = params;
+  const { region, state, status, page = '1', limit = '200', search, view, month, year } = params;
   const sql = neon(process.env.DATABASE_URL);
 
   try {
     // Dashboard view
     if (view === 'dashboard') {
-      const stats   = await sql`SELECT * FROM v_leads_by_region`;
-      const daily   = await sql`SELECT dia, region_code, total FROM v_leads_daily WHERE dia >= NOW() - INTERVAL '30 days' ORDER BY dia ASC`;
-      const totRow  = await sql`SELECT COUNT(*) AS count FROM leads`;
-      const lastSync= await sql`SELECT * FROM sync_logs ORDER BY started_at DESC LIMIT 1`;
-      return {
-        statusCode: 200, headers,
-        body: JSON.stringify({ stats, daily, totalLeads: Number(totRow[0].count), lastSync: lastSync[0] || null }),
-      };
+      const stats    = await sql`SELECT * FROM v_leads_by_region`;
+      const daily    = await sql`SELECT dia, region_code, total FROM v_leads_daily WHERE dia >= NOW() - INTERVAL '30 days' ORDER BY dia ASC`;
+      const totRow   = await sql`SELECT COUNT(*) AS count FROM leads`;
+      const lastSync = await sql`SELECT * FROM sync_logs ORDER BY started_at DESC LIMIT 1`;
+      return { statusCode:200, headers, body:JSON.stringify({ stats, daily, totalLeads:Number(totRow[0].count), lastSync:lastSync[0]||null }) };
     }
 
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const offset = (parseInt(page)-1) * parseInt(limit);
 
-    // Build query with only the filters provided — avoids sql.unsafe entirely
+    // Build date range from month/year filters
     let rows, totalRows;
 
+    // Map page (with optional month/year + region)
+    if (view === 'map') {
+      if (region && month && year) {
+        const dFrom = `${year}-${String(month).padStart(2,'0')}-01`;
+        const dTo   = month==='12' ? `${parseInt(year)+1}-01-01` : `${year}-${String(parseInt(month)+1).padStart(2,'0')}-01`;
+        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE region_code=${region} AND synced_at>=${dFrom} AND synced_at<${dTo} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE region_code=${region} AND synced_at>=${dFrom} AND synced_at<${dTo}`;
+      } else if (month && year) {
+        const dFrom = `${year}-${String(month).padStart(2,'0')}-01`;
+        const dTo   = month==='12' ? `${parseInt(year)+1}-01-01` : `${year}-${String(parseInt(month)+1).padStart(2,'0')}-01`;
+        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE synced_at>=${dFrom} AND synced_at<${dTo} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE synced_at>=${dFrom} AND synced_at<${dTo}`;
+      } else if (region) {
+        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE region_code=${region} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+        totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE region_code=${region}`;
+      } else {
+        rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+        totalRows = await sql`SELECT COUNT(*) AS c FROM leads`;
+      }
+      return { statusCode:200, headers, body:JSON.stringify({ data:rows, pagination:{ total:Number(totalRows[0].c), page:parseInt(page), limit:parseInt(limit), pages:Math.ceil(Number(totalRows[0].c)/parseInt(limit)) } }) };
+    }
+
+    // Standard list
     if (region && status && search) {
       totalRows = await sql`SELECT COUNT(*) AS c FROM leads WHERE region_code=${region} AND status=${status} AND raw_data::text ILIKE ${'%'+search+'%'}`;
       rows = await sql`SELECT id,external_id,state_code,region_code,status,assigned_to,notes,synced_at,raw_data FROM leads WHERE region_code=${region} AND status=${status} AND raw_data::text ILIKE ${'%'+search+'%'} ORDER BY synced_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
@@ -61,15 +81,10 @@ exports.handler = async (event) => {
     }
 
     const total = Number(totalRows[0].c);
-    return {
-      statusCode: 200, headers,
-      body: JSON.stringify({
-        data: rows,
-        pagination: { total, page: parseInt(page), limit: parseInt(limit), pages: Math.ceil(total/parseInt(limit)) },
-      }),
-    };
-  } catch (err) {
+    return { statusCode:200, headers, body:JSON.stringify({ data:rows, pagination:{ total, page:parseInt(page), limit:parseInt(limit), pages:Math.ceil(total/parseInt(limit)) } }) };
+
+  } catch(err) {
     console.error('get-leads error:', err);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
+    return { statusCode:500, headers, body:JSON.stringify({ error:err.message }) };
   }
 };
