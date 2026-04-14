@@ -13,15 +13,27 @@ exports.handler = async (event) => {
   const { status, has_sale, address_confirmed, notes, assigned_to, address } = body;
   const sql = neon(process.env.DATABASE_URL);
 
+  // Calcular next_visit_date: visitado sem venda = +15 dias; vendido = NULL; novo = NULL
+  const isVisited = status === 'visitado';
+  const isSold    = status === 'vendido';
+  const isNew     = status === 'novo';
+  const saleValue = has_sale ?? null;
+
   const [updated] = await sql`
     UPDATE neoway_leads SET
       status            = COALESCE(${status            ?? null}, status),
-      has_sale          = CASE WHEN ${has_sale          ?? null} IS NOT NULL THEN ${has_sale          ?? null} ELSE has_sale END,
+      has_sale          = CASE WHEN ${saleValue} IS NOT NULL THEN ${saleValue} ELSE has_sale END,
       address_confirmed = CASE WHEN ${address_confirmed ?? null} IS NOT NULL THEN ${address_confirmed ?? null} ELSE address_confirmed END,
       notes             = COALESCE(${notes             ?? null}, notes),
       assigned_to       = COALESCE(${assigned_to       ?? null}, assigned_to),
       address           = COALESCE(${address           ?? null}, address),
       visited_at        = CASE WHEN ${status ?? ''} IN ('visitado','vendido') AND visited_at IS NULL THEN NOW() ELSE visited_at END,
+      next_visit_date   = CASE
+        WHEN ${isSold}    THEN NULL
+        WHEN ${isNew}     THEN NULL
+        WHEN ${isVisited} AND (${saleValue} IS NULL OR ${saleValue} = false) THEN NOW() + INTERVAL '15 days'
+        ELSE next_visit_date
+      END,
       updated_at        = NOW()
     WHERE id = ${parseInt(id)}
     RETURNING *

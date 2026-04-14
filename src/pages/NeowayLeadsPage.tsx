@@ -45,7 +45,8 @@ export default function NeowayLeadsPage() {
   const [region, setRegion]   = useState('');
   const [status, setStatus]   = useState('');
   const [search, setSearch]   = useState('');
-  const [editing, setEditing] = useState<NLead | null>(null);
+  const [editing,     setEditing]     = useState<NLead | null>(null);
+  const [showHidden,  setShowHidden]  = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,6 +54,7 @@ export default function NeowayLeadsPage() {
     if (region) qs.set('region', region);
     if (status) qs.set('status', status);
     if (search) qs.set('search', search);
+    if (showHidden) qs.set('show_hidden', 'true');
     const res  = await fetch(`${API}/get-neoway-leads?${qs}`);
     const data = await res.json();
     setLeads(data.data || []);
@@ -61,7 +63,7 @@ export default function NeowayLeadsPage() {
   }, [page, region, status, search]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [region, status]);
+  useEffect(() => { setPage(1); }, [region, status, showHidden]);
   useEffect(() => {
     const t = setTimeout(() => { setPage(1); load(); }, 400);
     return () => clearTimeout(t);
@@ -74,16 +76,23 @@ export default function NeowayLeadsPage() {
           <h2 className="text-xl font-semibold text-gray-900">Leads Neoway</h2>
           <p className="text-sm text-gray-400 mt-1">{pagination.total.toLocaleString('pt-BR')} registros</p>
         </div>
-        <button
-          onClick={async () => {
-            if (!confirm('Resetar TODOS os leads para status "Novo"? Esta ação não pode ser desfeita.')) return;
-            await fetch(`${API}/reset-neoway-status`, { method: 'POST' });
-            load();
-          }}
-          className="text-xs border border-red-200 text-red-500 hover:bg-red-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          Resetar todos para Novo
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowHidden(h => !h)}
+            className={`text-xs border rounded-lg px-3 py-2 flex items-center gap-1.5 transition-colors ${showHidden ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            {showHidden ? 'Ocultar em cooldown' : 'Ver em cooldown (15d)'}
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm('Resetar TODOS os leads para status "Novo"? Esta ação não pode ser desfeita.')) return;
+              await fetch(`${API}/reset-neoway-status`, { method: 'POST' });
+              load();
+            }}
+            className="text-xs border border-red-200 text-red-500 hover:bg-red-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Resetar todos
+          </button>
+        </div>
       </div>
 
       {/* Region filter pills */}
@@ -169,7 +178,13 @@ export default function NeowayLeadsPage() {
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[lead.status]}`}>
                       {STATUS_LABELS[lead.status]}
                     </span>
-                    {lead.visited_at && (
+                    {(lead as any).next_visit_date && new Date((lead as any).next_visit_date) > new Date() && (
+                      <p className="text-xs text-amber-500 mt-0.5 flex items-center gap-1">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        Volta em {Math.ceil((new Date((lead as any).next_visit_date).getTime()-Date.now())/(1000*60*60*24))}d
+                      </p>
+                    )}
+                    {lead.visited_at && !(lead as any).next_visit_date && (
                       <p className="text-xs text-gray-400 mt-0.5">{new Date(lead.visited_at).toLocaleDateString('pt-BR')}</p>
                     )}
                   </td>

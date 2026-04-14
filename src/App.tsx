@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog, Trophy, MapPinned } from 'lucide-react';
+import { LayoutDashboard, Users, RefreshCw, Map, Upload, Globe, BarChart2, Building2, UserCog, Trophy, MapPinned, Star } from 'lucide-react';
 import Dashboard        from './pages/Dashboard';
 import LeadsTable       from './pages/LeadsTable';
 import RegionPage       from './pages/RegionPage';
@@ -11,6 +11,7 @@ import NeowayLeadsPage  from './pages/NeowayLeadsPage';
 import NeowayMapPage    from './pages/NeowayMapPage';
 import ExecutivosPage   from './pages/ExecutivosPage';
 import RankingPage      from './pages/RankingPage';
+import ClientesPage     from './pages/ClientesPage';
 
 export default function App() {
   return (
@@ -30,7 +31,8 @@ export default function App() {
 
             <SectionLabel label="Neoway"/>
             <NavItem to="/gestor"      icon={<BarChart2 size={15}/>}   label="Dashboard gestor"/>
-            <NavItem to="/neoway"      icon={<Building2 size={15}/>}   label="Leads Neoway"/>
+            <NavItem to="/neoway"      icon={<Building2 size={15}/>}   label="Leads"/>
+            <NavItem to="/clientes"    icon={<Star size={15}/>}        label="Clientes"/>
             <NavItem to="/neoway-mapa" icon={<MapPinned size={15}/>}   label="Mapa de leads"/>
             <NavItem to="/import"      icon={<Upload size={15}/>}      label="Importar Excel"/>
 
@@ -40,22 +42,23 @@ export default function App() {
             <NavItem to="/sync"       icon={<RefreshCw size={15}/>}   label="Sincronizar"/>
           </nav>
           <div className="p-4 border-t border-gray-200 flex-shrink-0">
-            <p className="text-xs text-gray-400">v1.5 · Neon DB</p>
+            <p className="text-xs text-gray-400">v1.6 · Neon DB</p>
           </div>
         </aside>
         <main className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/"           element={<Dashboard/>}/>
-            <Route path="/visitas"    element={<LeadsTable/>}/>
-            <Route path="/mapa"       element={<MapPage/>}/>
-            <Route path="/ranking"    element={<RankingPage/>}/>
-            <Route path="/gestor"     element={<ManagerDashboard/>}/>
-            <Route path="/neoway"     element={<NeowayLeadsPage/>}/>
+            <Route path="/"            element={<Dashboard/>}/>
+            <Route path="/visitas"     element={<LeadsTable/>}/>
+            <Route path="/mapa"        element={<MapPage/>}/>
+            <Route path="/ranking"     element={<RankingPage/>}/>
+            <Route path="/gestor"      element={<ManagerDashboard/>}/>
+            <Route path="/neoway"      element={<NeowayLeadsPage/>}/>
+            <Route path="/clientes"    element={<ClientesPage/>}/>
             <Route path="/neoway-mapa" element={<NeowayMapPage/>}/>
-            <Route path="/import"     element={<ImportPage/>}/>
-            <Route path="/executivos" element={<ExecutivosPage/>}/>
-            <Route path="/regioes"    element={<RegionPage/>}/>
-            <Route path="/sync"       element={<SyncPage/>}/>
+            <Route path="/import"      element={<ImportPage/>}/>
+            <Route path="/executivos"  element={<ExecutivosPage/>}/>
+            <Route path="/regioes"     element={<RegionPage/>}/>
+            <Route path="/sync"        element={<SyncPage/>}/>
           </Routes>
         </main>
       </div>

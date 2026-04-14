@@ -5,11 +5,33 @@ exports.handler = async (event) => {
   const headers = { 'Content-Type':'application/json','Access-Control-Allow-Origin':'*' };
   if (event.httpMethod === 'OPTIONS') return { statusCode:204, headers, body:'' };
 
-  const { region, status, search, page='1', limit='50', view } = event.queryStringParameters || {};
+  const { region, status, search, page='1', limit='50', view, show_hidden } = event.queryStringParameters || {};
   const sql = neon(process.env.DATABASE_URL);
   const offset = (parseInt(page)-1) * parseInt(limit);
 
   try {
+    // Clientes (leads vendidos)
+    if (view === 'clientes') {
+      const qs = new URLSearchParams();
+      if (region) qs.set('region', region);
+      const offset2 = (parseInt(page)-1)*parseInt(limit);
+      let rows, totalRows;
+      if (region && search) {
+        totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status='vendido' AND region_code=${region} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
+        rows = await sql`SELECT * FROM neoway_leads WHERE status='vendido' AND region_code=${region} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY visited_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset2}`;
+      } else if (region) {
+        totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status='vendido' AND region_code=${region}`;
+        rows = await sql`SELECT * FROM neoway_leads WHERE status='vendido' AND region_code=${region} ORDER BY visited_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset2}`;
+      } else if (search) {
+        totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status='vendido' AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
+        rows = await sql`SELECT * FROM neoway_leads WHERE status='vendido' AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY visited_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset2}`;
+      } else {
+        totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status='vendido'`;
+        rows = await sql`SELECT * FROM neoway_leads WHERE status='vendido' ORDER BY visited_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset2}`;
+      }
+      return { statusCode:200, headers, body:JSON.stringify({ data:rows, pagination:{ total:Number(totalRows[0].c), page:parseInt(page), limit:parseInt(limit), pages:Math.ceil(Number(totalRows[0].c)/parseInt(limit)) } }) };
+    }
+
     // Dashboard do gestor
     if (view === 'dashboard') {
       const stats  = await sql`SELECT * FROM v_manager_dashboard`;
@@ -21,7 +43,9 @@ exports.handler = async (event) => {
           COUNT(*) FILTER (WHERE status='visitado' OR status='vendido') AS visitados,
           COUNT(*) FILTER (WHERE has_sale=true)       AS vendas,
           COUNT(*) FILTER (WHERE address_confirmed=false) AS end_invalido,
-          COUNT(*) FILTER (WHERE address IS NULL OR address='') AS sem_endereco
+          COUNT(*) FILTER (WHERE address IS NULL OR address='') AS sem_endereco,
+          COUNT(*) FILTER (WHERE next_visit_date > NOW()) AS em_cooldown,
+          COUNT(*) FILTER (WHERE status='vendido')    AS clientes
         FROM neoway_leads
       `;
       return { statusCode:200, headers, body:JSON.stringify({ stats, daily, kpis:kpis[0], total:Number(totRow[0].c) }) };
