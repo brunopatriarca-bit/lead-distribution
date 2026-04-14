@@ -5,6 +5,15 @@ import { REGIONS } from '../types';
 
 const API = import.meta.env.VITE_API_URL || '/.netlify/functions';
 
+const MONTHS = [
+  {v:'',l:'Todos os meses'},
+  {v:'1',l:'Janeiro'},{v:'2',l:'Fevereiro'},{v:'3',l:'Março'},{v:'4',l:'Abril'},
+  {v:'5',l:'Maio'},{v:'6',l:'Junho'},{v:'7',l:'Julho'},{v:'8',l:'Agosto'},
+  {v:'9',l:'Setembro'},{v:'10',l:'Outubro'},{v:'11',l:'Novembro'},{v:'12',l:'Dezembro'},
+];
+const CY = new Date().getFullYear();
+const YEARS = [{v:'',l:'Todos os anos'}, ...[CY,CY-1,CY-2,CY-3].map(y=>({v:String(y),l:String(y)}))];
+
 // Paleta de cores para executivos no mapa
 const EXEC_COLORS = [
   '#7c3aed','#0ea5e9','#f97316','#22c55e','#e11d48',
@@ -23,6 +32,8 @@ export default function RankingPage() {
   const [loading,   setLoading]   = useState(true);
   const [leafletOk, setLeafletOk] = useState(false);
   const [sortBy,    setSortBy]    = useState<'visitas'|'total_km'>('visitas');
+  const [month,     setMonth]     = useState('');
+  const [year,      setYear]      = useState('');
 
   const mapRef     = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
@@ -44,11 +55,15 @@ export default function RankingPage() {
   // Fetch data
   const loadData = useCallback(async () => {
     setLoading(true);
-    const qs = region ? `&region=${region}` : '';
+    const qs = new URLSearchParams();
+    if (region) qs.set('region', region);
+    if (month)  qs.set('month', month);
+    if (year)   qs.set('year', year);
+    const qstr = qs.toString() ? '&'+qs.toString() : '';
     const [statsRes, rankRes, mapRes] = await Promise.all([
-      fetch(`${API}/get-ranking`),
-      fetch(`${API}/get-ranking?view=ranking${qs}`),
-      fetch(`${API}/get-ranking?view=mappoints${qs}`),
+      fetch(`${API}/get-ranking${qs.toString() ? '?'+qs.toString() : ''}`),
+      fetch(`${API}/get-ranking?view=ranking${qstr}`),
+      fetch(`${API}/get-ranking?view=mappoints${qstr}`),
     ]);
     const [s, r, m] = await Promise.all([statsRes.json(), rankRes.json(), mapRes.json()]);
     setStats(s); setRanking(r); setMapPoints(m);
@@ -56,6 +71,9 @@ export default function RankingPage() {
   }, [region]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // reload when month/year changes
+  useEffect(() => { loadData(); }, [month, year]);
 
   // Build exec color map
   const execColorMap: Record<string, string> = {};
@@ -120,6 +138,19 @@ export default function RankingPage() {
             <span className="flex items-center gap-1.5"><MapPin size={13}/>{totalVisitas.toLocaleString('pt-BR')} visitas</span>
             <span className="flex items-center gap-1.5"><Route size={13}/>{totalKm.toLocaleString('pt-BR', {maximumFractionDigits:0})} km</span>
           </div>
+        </div>
+
+        {/* Month/Year filters */}
+        <div className="flex items-center gap-2 ml-auto">
+          <Calendar size={13} className="text-gray-400"/>
+          <select value={month} onChange={e=>{setMonth(e.target.value);setSelected(null);}}
+            className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+            {MONTHS.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}
+          </select>
+          <select value={year} onChange={e=>{setYear(e.target.value);setSelected(null);}}
+            className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+            {YEARS.map(y=><option key={y.v} value={y.v}>{y.l}</option>)}
+          </select>
         </div>
 
         {/* Region pills */}
