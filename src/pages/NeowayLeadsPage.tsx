@@ -74,6 +74,16 @@ export default function NeowayLeadsPage() {
           <h2 className="text-xl font-semibold text-gray-900">Leads Neoway</h2>
           <p className="text-sm text-gray-400 mt-1">{pagination.total.toLocaleString('pt-BR')} registros</p>
         </div>
+        <button
+          onClick={async () => {
+            if (!confirm('Resetar TODOS os leads para status "Novo"? Esta ação não pode ser desfeita.')) return;
+            await fetch(`${API}/reset-neoway-status`, { method: 'POST' });
+            load();
+          }}
+          className="text-xs border border-red-200 text-red-500 hover:bg-red-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Resetar todos para Novo
+        </button>
       </div>
 
       {/* Region filter pills */}
@@ -117,10 +127,10 @@ export default function NeowayLeadsPage() {
             <tr className="border-b border-gray-100 bg-gray-50">
               <th className="text-left px-5 py-3 font-medium text-gray-500">Empresa</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">CNPJ</th>
-              <th className="text-left px-5 py-3 font-medium text-gray-500">Cidade / UF</th>
+              <th className="text-left px-5 py-3 font-medium text-gray-500">Endereço</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Região</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Status</th>
-              <th className="text-center px-4 py-3 font-medium text-gray-500">Endereço</th>
+              <th className="text-center px-4 py-3 font-medium text-gray-500">End. ok?</th>
               <th className="text-center px-4 py-3 font-medium text-gray-500">Venda</th>
               <th className="px-4 py-3"/>
             </tr>
@@ -135,15 +145,17 @@ export default function NeowayLeadsPage() {
               return (
                 <tr key={lead.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-3">
-                    <p className="font-medium text-gray-900 text-sm truncate max-w-48">{lead.name || '—'}</p>
-                    {lead.address && <p className="text-xs text-gray-400 truncate max-w-48">{lead.address}</p>}
+                    <p className="font-medium text-gray-900 text-sm truncate max-w-44">{lead.name || '—'}</p>
+                    {lead.city && <p className="text-xs text-gray-400">{lead.city}{lead.state_code ? ` - ${lead.state_code}` : ''}</p>}
                   </td>
                   <td className="px-5 py-3">
                     <span className="font-mono text-xs text-gray-500">{lead.cnpj || '—'}</span>
                   </td>
-                  <td className="px-5 py-3 text-gray-600 text-sm">
-                    {lead.city || '—'}
-                    {lead.state_code && <span className="ml-1 font-mono text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{lead.state_code}</span>}
+                  <td className="px-5 py-3">
+                    {lead.address
+                      ? <span className="text-xs text-gray-600 truncate block max-w-52" title={lead.address}>{lead.address.length > 45 ? lead.address.slice(0,45)+'…' : lead.address}</span>
+                      : <span className="text-gray-300 text-xs">—</span>
+                    }
                   </td>
                   <td className="px-5 py-3">
                     {reg ? (
