@@ -205,12 +205,29 @@ export default function NeowayLeadsPage() {
 }
 
 function EditModal({ lead, onClose, onSave }: { lead: NLead; onClose: ()=>void; onSave: (u:any)=>Promise<void> }) {
-  const [status,    setStatus]    = useState<NStatus>(lead.status);
-  const [hasSale,   setHasSale]   = useState<boolean|null>(lead.has_sale);
-  const [addrOk,    setAddrOk]    = useState<boolean|null>(lead.address_confirmed);
-  const [address,   setAddress]   = useState(lead.address || '');
-  const [notes,     setNotes]     = useState(lead.notes || '');
-  const [saving,    setSaving]    = useState(false);
+  const [status,       setStatus]       = useState<NStatus>(lead.status);
+  const [hasSale,      setHasSale]      = useState<boolean|null>(lead.has_sale);
+  const [addrOk,       setAddrOk]       = useState<boolean|null>(lead.address_confirmed);
+  const [address,      setAddress]      = useState(lead.address || '');
+  const [notes,        setNotes]        = useState(lead.notes || '');
+  const [saving,       setSaving]       = useState(false);
+  const [fetchingRF,   setFetchingRF]   = useState(false);
+  const [rfData,       setRfData]       = useState<any>(null);
+  const [rfError,      setRfError]      = useState('');
+
+  const buscarReceita = async () => {
+    if (!lead.cnpj) return;
+    setFetchingRF(true); setRfError(''); setRfData(null);
+    try {
+      const res  = await fetch(`${API}/fetch-cnpj?cnpj=${lead.cnpj}&id=${lead.id}&save=true`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      setRfData(data.data);
+      setAddress(data.data.full_address || address);
+    } catch(e: any) {
+      setRfError(e.message || 'Erro ao consultar Receita Federal');
+    } finally { setFetchingRF(false); }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
@@ -237,6 +254,30 @@ function EditModal({ lead, onClose, onSave }: { lead: NLead; onClose: ()=>void; 
             ))}
           </div>
         </div>
+
+        {/* Receita Federal */}
+        {lead.cnpj && (
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-gray-600">Receita Federal · CNPJ {lead.cnpj}</p>
+              <button onClick={buscarReceita} disabled={fetchingRF}
+                className="flex items-center gap-1.5 text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700 disabled:opacity-50 font-medium">
+                {fetchingRF ? '⏳ Consultando...' : '🔍 Buscar dados'}
+              </button>
+            </div>
+            {rfError && <p className="text-xs text-red-500">{rfError}</p>}
+            {rfData && (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                {rfData.razao_social && <><span className="text-gray-400">Razão Social</span><span className="text-gray-700 font-medium truncate">{rfData.razao_social}</span></>}
+                {rfData.situacao     && <><span className="text-gray-400">Situação</span><span className={`font-medium ${rfData.situacao.includes('ATIVA') ? 'text-green-600' : 'text-red-500'}`}>{rfData.situacao}</span></>}
+                {rfData.municipio    && <><span className="text-gray-400">Município</span><span className="text-gray-700">{rfData.municipio} - {rfData.uf}</span></>}
+                {rfData.telefone     && <><span className="text-gray-400">Telefone</span><span className="text-gray-700">{rfData.telefone}</span></>}
+                {rfData.cnae         && <><span className="text-gray-400">CNAE</span><span className="text-gray-700 col-span-1 truncate">{rfData.cnae}</span></>}
+                {rfData.porte        && <><span className="text-gray-400">Porte</span><span className="text-gray-700">{rfData.porte}</span></>}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Address */}
         <div>

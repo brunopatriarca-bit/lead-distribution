@@ -98,6 +98,7 @@ export default function LeadsTable() {
               <th className="text-left px-5 py-3 font-medium text-gray-500">Região</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Status</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Responsável</th>
+              <th className="text-left px-5 py-3 font-medium text-gray-500">Endereço / Local</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Sincronizado</th>
               <th className="px-5 py-3" />
             </tr>
@@ -140,6 +141,18 @@ export default function LeadsTable() {
                         return n || <span className="text-gray-300">—</span>;
                       })()
                   }
+                </td>
+                <td className="px-5 py-3">
+                  {(() => {
+                    const r = lead.raw_data as any;
+                    const loc  = r?.LOCALIZAÇÃO || r?.localizacao || r?.localizacao_fim || '';
+                    const city = r?.municipio   || r?.cidade      || '';
+                    const uf   = lead.state_code || '';
+                    const text = loc || [city, uf].filter(Boolean).join(' - ');
+                    return text
+                      ? <span className="text-xs text-gray-500 truncate block max-w-48" title={text}>{text}</span>
+                      : <span className="text-gray-300 text-xs">—</span>;
+                  })()}
                 </td>
                 <td className="px-5 py-3 text-gray-400 text-xs">
                   {format(new Date(lead.synced_at), 'dd/MM/yy HH:mm')}
