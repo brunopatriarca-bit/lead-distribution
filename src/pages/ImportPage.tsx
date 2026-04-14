@@ -28,20 +28,41 @@ export default function ImportPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb   = XLSX.read(e.target?.result, { type: 'binary' });
-        const ws   = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, unknown>[];
-        const headers = rows.length ? Object.keys(rows[0]) : [];
+        const wb = XLSX.read(e.target?.result, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
 
-        // Auto-detectar colunas de UF e nome
-        const ufGuess   = headers.find(h => /^(uf|estado|state|sg_uf)$/i.test(h)) || '';
-        const nameGuess = headers.find(h => /raz[aã]o|nome|name|empresa|company/i.test(h)) || '';
+        // Lê como array cru para detectar a linha real de cabeçalho
+        const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as unknown[][];
 
-        setParsed({ headers, rows, fileName: file.name });
+        // Procura a linha que tem mais colunas reconhecíveis (CNPJ, UF, Nome, etc.)
+        const headerKeywords = ['cnpj','cpf','uf','estado','munic','empresa','nome','razão','razao','contato','localiz','status','regional','cidade','endere','bairro','cep','telefone','email','segmento','porte'];
+        let headerRowIndex = 0;
+        let bestScore = 0;
+        for (let i = 0; i < Math.min(rawRows.length, 15); i++) {
+          const row = rawRows[i].map((v: unknown) => String(v ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
+          const score = row.filter(v => headerKeywords.some(k => v.includes(k))).length;
+          if (score > bestScore) { bestScore = score; headerRowIndex = i; }
+        }
+
+        const headers = rawRows[headerRowIndex].map((v: unknown) => String(v ?? '').trim()).filter(Boolean);
+        const dataRows = rawRows
+          .slice(headerRowIndex + 1)
+          .filter(row => row.some((v: unknown) => v !== null && v !== undefined && v !== ''))
+          .map(row => {
+            const obj: Record<string, unknown> = {};
+            headers.forEach((h, i) => { obj[h] = (row as unknown[])[i] ?? ''; });
+            return obj;
+          });
+
+        // Auto-detectar colunas de UF, nome, CNPJ
+        const ufGuess   = headers.find(h => /^(uf|estado|sg_uf)$/i.test(h.trim())) || headers.find(h => /uf|estado/i.test(h)) || '';
+        const nameGuess = headers.find(h => /raz[aã]o|empresa|nome.*(emp|soc)|company/i.test(h)) || headers.find(h => /empresa|nome/i.test(h)) || '';
+
+        setParsed({ headers, rows: dataRows, fileName: file.name });
         setUfCol(ufGuess);
         setNameCol(nameGuess);
         setStage('parsed');
-      } catch {
+      } catch (err) {
         setError('Erro ao ler o arquivo. Certifique-se que é .xlsx ou .xls');
         setStage('error');
       }

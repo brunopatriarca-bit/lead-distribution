@@ -49,11 +49,12 @@ exports.handler = async (event) => {
   for (const row of rows) {
     try {
       // Detectar campos
-      const ufRaw   = ufColumn      ? row[ufColumn]      : (row['UF']||row['uf']||row['Estado']||row['estado']);
-      const nameRaw = nameColumn    ? row[nameColumn]    : (row['Razão Social']||row['razao_social']||row['Nome']||row['RAZÃO SOCIAL']||row['nome']);
+      // Neoway: CNPJ, UF, MUNICÍPIO, EMPRESA, CONTATO, LOCALIZAÇÃO, STATUS
+      const ufRaw   = ufColumn      ? row[ufColumn]      : (row['UF']||row['uf']||row['Estado']||row['estado']||row['SG_UF']);
+      const nameRaw = nameColumn    ? row[nameColumn]    : (row['EMPRESA']||row['Empresa']||row['Razão Social']||row['RAZÃO SOCIAL']||row['razao_social']||row['Nome']||row['nome']||row['REGIONAL CO']);
       const cnpjRaw = cnpjColumn    ? row[cnpjColumn]    : (row['CNPJ']||row['cnpj']||row['CPF']||row['cpf']);
-      const cityRaw = cityColumn    ? row[cityColumn]    : (row['Cidade']||row['cidade']||row['MUNICIPIO']||row['Municipio']);
-      const addrRaw = addressColumn ? row[addressColumn] : (row['Endereço']||row['endereco']||row['Logradouro']||row['logradouro']);
+      const cityRaw = cityColumn    ? row[cityColumn]    : (row['MUNICÍPIO']||row['Município']||row['MUNICIPIO']||row['Municipio']||row['Cidade']||row['cidade']);
+      const addrRaw = addressColumn ? row[addressColumn] : (row['LOCALIZAÇÃO']||row['Localização']||row['LOCALIZACAO']||row['Endereço']||row['endereco']||row['Logradouro']||row['logradouro']);
 
       const stateCode  = normalizeUF(ufRaw);
       const regionCode = stateCode ? (STATE_TO_REGION[stateCode] || null) : null;
