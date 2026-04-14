@@ -14,6 +14,8 @@ export default function LeadsTable() {
   const [status, setStatus] = useState<LeadStatus | ''>('');
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Lead | null>(null);
+  const [month, setMonth]     = useState('4');
+  const [year,  setYear]      = useState('2025');
 
   const load = async () => {
     setLoading(true);
@@ -24,6 +26,7 @@ export default function LeadsTable() {
         ...(region && { region }),
         ...(status && { status }),
         ...(search && { search }),
+        ...(month && year && { month, year }),
       });
       setData(res);
     } finally {
@@ -31,7 +34,7 @@ export default function LeadsTable() {
     }
   };
 
-  useEffect(() => { load(); }, [page, region, status]);
+  useEffect(() => { load(); }, [page, region, status, month, year]);
   useEffect(() => {
     const t = setTimeout(load, 400);
     return () => clearTimeout(t);
@@ -59,8 +62,8 @@ export default function LeadsTable() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
+      <div className="flex gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -70,6 +73,14 @@ export default function LeadsTable() {
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </div>
+        <select value={month} onChange={e => { setMonth(e.target.value); setPage(1); }}
+          className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+          {MONTHS.map(m => <option key={m.v} value={m.v}>{m.l}</option>)}
+        </select>
+        <select value={year} onChange={e => { setYear(e.target.value); setPage(1); }}
+          className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+          {YEARS_OPT.map(y => <option key={y.v} value={y.v}>{y.l}</option>)}
+        </select>
         <select
           value={region}
           onChange={e => { setRegion(e.target.value as RegionCode | ''); setPage(1); }}

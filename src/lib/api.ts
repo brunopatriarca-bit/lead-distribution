@@ -27,6 +27,8 @@ export const api = {
     page?: number;
     limit?: number;
     search?: string;
+    month?: string;
+    year?: string;
   }) => {
     const qs = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => v != null && qs.set(k, String(v)));

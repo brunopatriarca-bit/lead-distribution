@@ -32,8 +32,8 @@ export default function RankingPage() {
   const [loading,   setLoading]   = useState(true);
   const [leafletOk, setLeafletOk] = useState(false);
   const [sortBy,    setSortBy]    = useState<'visitas'|'total_km'>('visitas');
-  const [month,     setMonth]     = useState('');
-  const [year,      setYear]      = useState('');
+  const [month,     setMonth]     = useState('4');
+  const [year,      setYear]      = useState('2025');
 
   const mapRef     = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
@@ -68,7 +68,7 @@ export default function RankingPage() {
     const [s, r, m] = await Promise.all([statsRes.json(), rankRes.json(), mapRes.json()]);
     setStats(s); setRanking(r); setMapPoints(m);
     setLoading(false);
-  }, [region]);
+  }, [region, month, year]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
