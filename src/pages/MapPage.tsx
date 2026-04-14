@@ -108,24 +108,43 @@ export default function MapPage() {
         iconAnchor: [5, 5],
       });
 
-      const nome       = String(r.nome_colaborador || r.nome || '');
-      const sobrenome  = String(r.sobrenome_colaborador || '');
-      const centroCusto= String(r.centro_custo || '');
+      const nomeColab  = String(r.nome_colaborador  || r.nome  || '').trim();
+      const sobColab   = String(r.sobrenome_colaborador || '').trim();
+      const nomeExec   = [nomeColab, sobColab].filter(Boolean).join(' ') || '—';
+      const justif     = String(r.justificativa   || '').trim();
+      const descServ   = String(r.desc_servico     || '').trim();
+      const centroCusto= String(r.centro_custo     || '').trim();
+      const nomeVisita = justif || descServ || '';
       const data       = String(r.data_inicio || '').slice(0, 10);
       const distancia  = r.distancia ? `${r.distancia} km` : '';
+      const tipo       = String(r.tipo || '').trim();
 
       const popup = `
-        <div style="font-family:sans-serif;font-size:13px;min-width:200px">
-          <div style="font-weight:600;color:#111;margin-bottom:6px">
-            ${nome} ${sobrenome}
+        <div style="font-family:sans-serif;font-size:13px;min-width:220px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <div style="width:28px;height:28px;border-radius:50%;background:${color}20;
+              display:flex;align-items:center;justify-content:center;
+              font-size:11px;font-weight:600;color:${color};flex-shrink:0">
+              ${nomeColab.charAt(0)}${sobColab.charAt(0) || ''}
+            </div>
+            <div>
+              <div style="font-weight:600;color:#111;line-height:1.3">${nomeExec}</div>
+              ${region ? `<div style="font-size:11px;color:${color}">${region.label}</div>` : ''}
+            </div>
           </div>
-          ${centroCusto ? `<div style="color:#666;font-size:12px;margin-bottom:4px">${centroCusto}</div>` : ''}
-          <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
-            ${lead.state_code ? `<span style="background:#f3f4f6;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500">${lead.state_code}</span>` : ''}
-            ${region ? `<span style="background:${color}20;color:${color};border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500">${region.label}</span>` : ''}
-            ${distancia ? `<span style="background:#f3f4f6;border-radius:4px;padding:2px 8px;font-size:11px">${distancia}</span>` : ''}
+          ${nomeVisita ? `
+          <div style="background:#f8f9fa;border-radius:6px;padding:6px 10px;margin-bottom:8px">
+            <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Visita</div>
+            <div style="font-weight:500;color:#374151;font-size:12px">${nomeVisita}</div>
+          </div>` : ''}
+          ${centroCusto ? `
+          <div style="font-size:11px;color:#6b7280;margin-bottom:6px;padding-left:2px">${centroCusto}</div>` : ''}
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            ${lead.state_code ? `<span style="background:#f3f4f6;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500;color:#374151">${lead.state_code}</span>` : ''}
+            ${tipo ? `<span style="background:#f3f4f6;border-radius:4px;padding:2px 8px;font-size:11px;color:#6b7280">${tipo}</span>` : ''}
+            ${distancia ? `<span style="background:#eff6ff;border-radius:4px;padding:2px 8px;font-size:11px;color:#3b82f6">${distancia}</span>` : ''}
           </div>
-          ${data ? `<div style="color:#9ca3af;font-size:11px;margin-top:6px">${data}</div>` : ''}
+          ${data ? `<div style="color:#9ca3af;font-size:11px">${data.split('-').reverse().join('/')}</div>` : ''}
         </div>
       `;
 
