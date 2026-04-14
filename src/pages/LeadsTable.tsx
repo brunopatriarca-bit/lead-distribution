@@ -131,7 +131,16 @@ export default function LeadsTable() {
                     {STATUS_LABELS[lead.status]}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-gray-600">{lead.assigned_to ?? '—'}</td>
+                <td className="px-5 py-3 text-gray-700">
+                  {lead.assigned_to
+                    ? lead.assigned_to
+                    : (() => {
+                        const r = lead.raw_data as any;
+                        const n = [r?.nome_colaborador, r?.sobrenome_colaborador].filter(Boolean).join(' ');
+                        return n || <span className="text-gray-300">—</span>;
+                      })()
+                  }
+                </td>
                 <td className="px-5 py-3 text-gray-400 text-xs">
                   {format(new Date(lead.synced_at), 'dd/MM/yy HH:mm')}
                 </td>

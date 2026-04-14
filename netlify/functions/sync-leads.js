@@ -116,13 +116,19 @@ exports.handler = async (event) => {
       const stateCode  = coordsToState(lat, lon);
       const regionCode = stateCode ? (STATE_TO_REGION[stateCode] || null) : null;
 
+      const nomeColab = [
+        String(row.nome_colaborador      || '').trim(),
+        String(row.sobrenome_colaborador || '').trim(),
+      ].filter(Boolean).join(' ') || null;
+
       const result = await sql`
-        INSERT INTO leads (external_id, raw_data, state_code, region_code, synced_at)
-        VALUES (${externalId}, ${JSON.stringify(row)}, ${stateCode}, ${regionCode}, NOW())
+        INSERT INTO leads (external_id, raw_data, state_code, region_code, assigned_to, synced_at)
+        VALUES (${externalId}, ${JSON.stringify(row)}, ${stateCode}, ${regionCode}, ${nomeColab}, NOW())
         ON CONFLICT (external_id) DO UPDATE SET
           raw_data    = EXCLUDED.raw_data,
           state_code  = EXCLUDED.state_code,
           region_code = EXCLUDED.region_code,
+          assigned_to = EXCLUDED.assigned_to,
           synced_at   = NOW()
         RETURNING (xmax = 0) AS is_insert
       `;
