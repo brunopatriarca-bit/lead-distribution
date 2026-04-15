@@ -248,6 +248,7 @@ function EditModal({ lead, onClose, onSave }: { lead: NLead; onClose: ()=>void; 
   const [addrOk,       setAddrOk]       = useState<boolean|null>(lead.address_confirmed);
   const [address,      setAddress]      = useState(lead.address || '');
   const [notes,        setNotes]        = useState(lead.notes || '');
+  const [assignedTo,   setAssignedTo]   = useState(lead.assigned_to || '');
   const [saving,       setSaving]       = useState(false);
   const [fetchingRF,   setFetchingRF]   = useState(false);
   const [rfData,       setRfData]       = useState<any>(null);
@@ -368,6 +369,14 @@ function EditModal({ lead, onClose, onSave }: { lead: NLead; onClose: ()=>void; 
           </div>
         </div>
 
+        {/* Executivo */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Executivo responsável</label>
+          <input type="text" value={assignedTo} onChange={e => setAssignedTo(e.target.value)}
+            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            placeholder="Nome do executivo que realizou a visita"/>
+        </div>
+
         {/* Notes */}
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Observações</label>
@@ -382,7 +391,7 @@ function EditModal({ lead, onClose, onSave }: { lead: NLead; onClose: ()=>void; 
           </button>
           <button disabled={saving} onClick={async () => {
             setSaving(true);
-            await onSave({ status, has_sale: hasSale, address_confirmed: addrOk, notes, address });
+            await onSave({ status, has_sale: hasSale, address_confirmed: addrOk, notes, address, assigned_to: assignedTo });
             setSaving(false);
           }} className="px-4 py-2 text-sm bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 font-medium">
             {saving ? 'Salvando...' : 'Salvar'}
