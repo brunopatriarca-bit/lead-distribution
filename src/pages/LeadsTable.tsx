@@ -118,7 +118,7 @@ export default function LeadsTable() {
               <th className="text-left px-5 py-3 font-medium text-gray-500">Status</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Responsável</th>
               <th className="text-left px-5 py-3 font-medium text-gray-500">Endereço / Local</th>
-              <th className="text-left px-5 py-3 font-medium text-gray-500">Sincronizado</th>
+              <th className="text-left px-5 py-3 font-medium text-gray-500">Data da visita</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
@@ -195,7 +195,11 @@ export default function LeadsTable() {
                   })()}
                 </td>
                 <td className="px-5 py-3 text-gray-400 text-xs">
-                  {format(new Date(lead.synced_at), 'dd/MM/yy HH:mm')}
+                  {(() => {
+                    const d = (lead.raw_data as any)?.data_inicio;
+                    const date = d ? new Date(d) : new Date(lead.synced_at);
+                    return format(date, 'dd/MM/yy');
+                  })()}
                 </td>
                 <td className="px-5 py-3">
                   <button onClick={() => setEditing(lead)} className="text-gray-400 hover:text-violet-600">
