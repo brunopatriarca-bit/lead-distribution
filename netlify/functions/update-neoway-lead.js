@@ -15,7 +15,11 @@ exports.handler = async (event) => {
   if (!id) return { statusCode:400, headers, body:JSON.stringify({error:'ID obrigatório'}) };
 
   const body = JSON.parse(event.body || '{}');
-  const { status, has_sale, address_confirmed, notes, assigned_to, address } = body;
+  const { address_confirmed, notes, assigned_to, address } = body;
+  // Se has_sale=true, forçar status=vendido automaticamente
+  let status  = body.status;
+  let has_sale = body.has_sale;
+  if (has_sale === true && status !== 'vendido') status = 'vendido';
   const sql = neon(process.env.DATABASE_URL);
 
   // Calcular next_visit_date baseado no status

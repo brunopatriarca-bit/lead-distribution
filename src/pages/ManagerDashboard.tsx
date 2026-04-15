@@ -12,12 +12,15 @@ export default function ManagerDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch(`${API}/get-neoway-leads?view=dashboard`)
+  const load = () => {
+    setLoading(true);
+    fetch(`${API}/get-neoway-leads?view=dashboard&t=${Date.now()}`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { load(); }, []);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -38,6 +41,10 @@ export default function ManagerDashboard() {
         <h2 className="text-xl font-semibold text-gray-900">Dashboard do gestor</h2>
         <p className="text-sm text-gray-400 mt-1">Acompanhamento de leads Neoway por região</p>
       </div>
+      <button onClick={load} className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 ml-auto">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Atualizar
+      </button>
 
       {/* KPIs */}
       <div className="grid grid-cols-5 gap-4">
