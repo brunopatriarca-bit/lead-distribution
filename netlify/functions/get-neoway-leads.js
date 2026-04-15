@@ -52,32 +52,36 @@ exports.handler = async (event) => {
     }
 
     // Listagem
+    // Quando nenhum status específico: esconder vendidos (vão para Clientes)
+    // e leads em cooldown (next_visit_date > NOW()), a menos que show_hidden=true
+    const hideSold = !status; // sem filtro = esconder vendidos
+    const hideCooldown = !status && show_hidden !== 'true';
     let rows, totalRows;
 
-    if (region && status && search) {
+    if (status && region && search) {
       totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE region_code=${region} AND status=${status} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
       rows = await sql`SELECT * FROM neoway_leads WHERE region_code=${region} AND status=${status} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-    } else if (region && status) {
+    } else if (status && region) {
       totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE region_code=${region} AND status=${status}`;
       rows = await sql`SELECT * FROM neoway_leads WHERE region_code=${region} AND status=${status} ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-    } else if (region && search) {
-      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE region_code=${region} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
-      rows = await sql`SELECT * FROM neoway_leads WHERE region_code=${region} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
     } else if (status && search) {
       totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status=${status} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
       rows = await sql`SELECT * FROM neoway_leads WHERE status=${status} AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
-    } else if (region) {
-      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE region_code=${region}`;
-      rows = await sql`SELECT * FROM neoway_leads WHERE region_code=${region} ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
     } else if (status) {
       totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status=${status}`;
       rows = await sql`SELECT * FROM neoway_leads WHERE status=${status} ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+    } else if (region && search) {
+      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE region_code=${region} AND status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown}) AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
+      rows = await sql`SELECT * FROM neoway_leads WHERE region_code=${region} AND status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown}) AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+    } else if (region) {
+      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE region_code=${region} AND status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown})`;
+      rows = await sql`SELECT * FROM neoway_leads WHERE region_code=${region} AND status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
     } else if (search) {
-      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}`;
-      rows = await sql`SELECT * FROM neoway_leads WHERE name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'} ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown}) AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'})`;
+      rows = await sql`SELECT * FROM neoway_leads WHERE status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown}) AND (name ILIKE ${'%'+search+'%'} OR cnpj ILIKE ${'%'+search+'%'}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
     } else {
-      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads`;
-      rows = await sql`SELECT * FROM neoway_leads ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
+      totalRows = await sql`SELECT COUNT(*) AS c FROM neoway_leads WHERE status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown})`;
+      rows = await sql`SELECT * FROM neoway_leads WHERE status != 'vendido' AND (next_visit_date IS NULL OR next_visit_date <= NOW() OR ${!hideCooldown}) ORDER BY updated_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`;
     }
 
     const total = Number(totalRows[0].c);
