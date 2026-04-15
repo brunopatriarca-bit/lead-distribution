@@ -95,37 +95,48 @@ export default function NeowayLeadsPage() {
         </div>
       </div>
 
-      {/* Region filter pills */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <button onClick={() => setRegion('')}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!region ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-          Todas
-        </button>
-        {REGIONS.map(r => (
-          <button key={r.code} onClick={() => setRegion(r.code)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 ${region === r.code ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            style={region === r.code ? { backgroundColor: r.color } : {}}>
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: region === r.code ? 'rgba(255,255,255,0.7)' : r.color }}/>
-            {r.label}
+      {/* Status tabs */}
+      <div className="flex border-b border-gray-200 gap-0">
+        {[
+          {v:'', l:'Todos'},
+          {v:'novo', l:'Novos'},
+          {v:'visitado', l:'Visitados'},
+          {v:'vendido', l:'Vendidos'},
+          {v:'sem_endereco', l:'Sem endereço'},
+          {v:'cancelado', l:'Cancelados'},
+        ].map(tab => (
+          <button key={tab.v} onClick={() => { setStatus(tab.v as any); setPage(1); }}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              status === tab.v
+                ? 'border-violet-600 text-violet-700'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}>
+            {tab.l}
           </button>
         ))}
       </div>
 
-      {/* Search + status filter */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+      {/* Region pills + search */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button onClick={() => setRegion('')}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${!region ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            Todas
+          </button>
+          {REGIONS.map(r => (
+            <button key={r.code} onClick={() => setRegion(r.code)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${region === r.code ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              style={region === r.code ? { backgroundColor: r.color } : {}}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: region === r.code ? 'rgba(255,255,255,0.7)' : r.color }}/>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1 min-w-48">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
           <input type="text" placeholder="Buscar por nome ou CNPJ..." value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"/>
-        </div>
-        <div className="relative">
-          <select value={status} onChange={e => setStatus(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 pr-8 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 appearance-none">
-            <option value="">Todos os status</option>
-            {Object.entries(STATUS_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-          <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+            className="w-full pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"/>
         </div>
       </div>
 
