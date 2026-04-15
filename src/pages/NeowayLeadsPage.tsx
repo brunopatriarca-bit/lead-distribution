@@ -353,7 +353,12 @@ function EditModal({ lead, onClose, onSave }: { lead: NLead; onClose: ()=>void; 
               { val: false, label: 'Não houve',        cls: 'bg-red-500 text-white border-red-500' },
               { val: null,  label: 'Não informado',    cls: 'bg-violet-600 text-white border-violet-600' },
             ].map(o => (
-              <button key={String(o.val)} onClick={() => setHasSale(o.val)}
+              <button key={String(o.val)} onClick={() => {
+                setHasSale(o.val);
+                // Auto-atualizar status: sim = vendido, não = visitado
+                if (o.val === true)  setStatus('vendido');
+                if (o.val === false) setStatus('visitado');
+              }}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                   hasSale === o.val ? o.cls : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}>
